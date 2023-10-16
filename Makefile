@@ -2,12 +2,12 @@ GCC = gcc
 CFLAGS = -g -Wall -Wshadow
 LDFLAGS = -lrt -pthread
 
-SRCS = master.c slave.c
+SRCS = oss.c slave.c
 
 %: %.c
 	$(GCC) $(CFLAGS) $< -o $@ $(LDFLAGS)
 
-all: master slave
+all:  oss slave
 
 clean:
-	rm -f master slave cstest logfile.*
+	rm -f oss slave cstest logfile.*

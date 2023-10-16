@@ -1,5 +1,5 @@
-Terry Ford CS 4760 Project 3 - master/slave using semaphore to access critical section 10/02/2023
-Git:  https://github.com/tfordjr/critical-selection-semaphores/tree/main 
+Terry Ford CS 4760 Project 4 - oss 10/14/2023
+Git:  https://github.com/tfordjr/OS-Simulator 
 
 How to run my program:
 make command will generate executables master and slave
