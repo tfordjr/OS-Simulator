@@ -1,5 +1,5 @@
-#ifndef CLOCK_SHM_H
-#define CLOCK_SHM_H
+#ifndef PROCESS_TABLE_SHM_H
+#define PROCESS_TABLE_SHM_H
 
 #include <sys/mman.h>
 #include <fcntl.h>
@@ -7,57 +7,64 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
-#define CLOCK_SHM_NAME "/logical_clock"
-#define CLOCK_SHM_SIZE sizeof(struct LogicalClock) 
+#include "config.h"
 
-struct LogicalClock {
-	unsigned int seconds;
-	unsigned int nanoseconds;
+#define PROCESS_TABLE_SHM_NAME "/process_table"
+#define PROCESS_TABLE_SHM_SIZE (sizeof(struct PCB) * MAX_PROCESSES) 
+
+struct PCB {
+	pid_t pid;
+	unsigned int total_cpu_time;
+	unsigned int total_system_time;
+	unsigned int last_burst_time;
+	int priority;
 };
 
-struct LogicalClock* initClockShm(){
+struct PCB* initProcessTableShm(){
         // Allocates shared memory boolean lock. lock will ensure one child works at a time on cstest
-        int shmid = shm_open(CLOCK_SHM_NAME, O_CREAT | O_RDWR, 0666);   //  Creating shared memory
+        int shmid = shm_open(PROCESS_TABLE_SHM_NAME, O_CREAT | O_RDWR, 0666);   //  Creating shared memory
         if (shmid == -1) {
-                perror("initClockShm: Error: shmget failed\n");
+                perror("initProcessTableShm: Error: shmget failed\n");
                 exit(1);
         }
 
-        int trunc = ftruncate(shmid, CLOCK_SHM_SIZE);
+        int trunc = ftruncate(shmid, PROCESS_TABLE_SHM_SIZE);
         if (trunc == -1){
-                perror("initClockShm: Error: truncation failed\n");
+                perror("initProcessTableShm: Error: truncation failed\n");
                 exit(1);
         }
 
-        struct LogicalClock* clock = (struct LogicalClock*)mmap(NULL, CLOCK_SHM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, shmid, 0);
-        if (clock == MAP_FAILED) {
-                perror("initClockShm: Error: mmat failed\n");
+        struct PCB* processTable = (struct PCB*)mmap(NULL, PROCESS_TABLE_SHM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, shmid, 0);
+        if (processTable == MAP_FAILED) {
+                perror("initProcessTableShm: Error: mmat failed\n");
                 exit(1);
         }
 
-        clock->seconds = 0;       // Initializing clock 
-	clock->nanoseconds = 0;
-     	return clock;   
+	for (int i = 0; i < MAX_PROCESSES; i++) {
+		processTable[i].pid = -1;
+	}
+
+	return processTable;   
 }
 
-struct LogicalClock* openClockShm(){	
-	int shmid = shm_open(CLOCK_SHM_NAME, O_RDWR, 0);    //Creating shared memory
+struct PCB* openProcessTableShm(){	
+	int shmid = shm_open(PROCESS_TABLE_SHM_NAME, O_RDWR, 0);    //Creating shared memory
         if (shmid == -1) {
-                perror("openClockShm: Error: shm_open failed\n");
+                perror("openProcessTableShm: Error: shm_open failed\n");
                 exit(1);
         }
 
-        struct LogicalClock* clock = (struct LogicalClock*)mmap(NULL, CLOCK_SHM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, shmid, 0); 
-        if (clock == MAP_FAILED) {
-                perror("openClockShm: Error: mmap failed\n");
+        struct PCB* processTable = (struct PCB*)mmap(NULL, PROCESS_TABLE_SHM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, shmid, 0); 
+        if (processTable == MAP_FAILED) {
+                perror("openProcessTableShm: Error: mmap failed\n");
                 exit(1);
         }
-	return clock;
+	return processTable;
 }
 
-void deallocateClockShm(){
-	if(shm_unlink(CLOCK_SHM_NAME) == -1){
-		perror("deallocateClockShm: Error: shm_unlink falied\n");
+void deallocateProcessTableShm(){
+	if(shm_unlink(PROCESS_TABLE_SHM_NAME) == -1){
+		perror("deallocateProcessTableShm: Error: shm_unlink falied\n");
 		exit(1);
 	}
 }

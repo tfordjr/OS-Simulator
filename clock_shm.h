@@ -40,6 +40,18 @@ struct LogicalClock* initClockShm(){
      	return clock;   
 }
 
+
+
+void incrementClock(struct LogicalClock* clock, int seconds, int nanoseconds){	
+	clock->nanoseconds += nanoseconds;
+	if (clock->nanoseconds >= 1000000000) {
+        	clock->nanoseconds -= 1000000000;
+        	clock->seconds++;
+        }
+	clock->seconds += seconds;	
+}
+
+
 struct LogicalClock* openClockShm(){	
 	int shmid = shm_open(CLOCK_SHM_NAME, O_RDWR, 0);    //Creating shared memory
         if (shmid == -1) {

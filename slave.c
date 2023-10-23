@@ -10,10 +10,13 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <sys/msg.h>
 
-#include "shm.h"
+#include "clock_shm.h"
+#include "process_table_shm.h"
 
 #define SEM_NAME "/file_semaphore"
+
 
 void logfile();
 
@@ -36,7 +39,16 @@ int main(){
 		perror("slave: Error: sem_open failed\n");
 		exit(0);
 	}
+
+
+
+
 	
+
+
+
+
+
 	for (int i = 0; i < 5; i++) {  //for loop ensures no more than 5 accesses to crit section
 
 		if (sem_wait(file_semaphore) == -1) {
@@ -61,6 +73,22 @@ int main(){
 	fclose(outputfile);	
 	sem_close(file_semaphore);  //deallocating semaphore
 	sem_unlink(SEM_NAME);
+
+
+	key_t messageKey = ftok(".", 'm');
+	int messageQueue = msgget(messageKey, IPC_CREAT | 0666);
+	unsigned int nsIncrement = rand() % MAX_TIME_BETWEEN_PROCS_NS;
+
+	struct {
+		long mtype;
+		pid_t childPid;
+		unsigned int burstTime;
+	} message;
+	message.mtype = 1;
+	message.childPid = getpid();
+	message.burstTime = nsIncrement;
+	msgsnd(messageQueue, &message, sizeof(message), 0);
+
 
 	return 0;
 }

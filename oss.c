@@ -15,11 +15,14 @@
 #include <sys/shm.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/msg.h>
 
 #include "config.h"
-#include "shm.h"
+#include "clock_shm.h"
+#include "process_table_shm.h"
 
 #define SEM_NAME "/file_semaphore"
+
 
 void help();
 void sigCatch(int);
@@ -31,14 +34,14 @@ int main(int argc, char** argv){
 	int option;   
   	int numChildren = 20; 
 	char logfilename[20];
-        while ( (option = getopt(argc, argv, "ht:l:")) != -1) {    // Only one arg: t- 
+        while ( (option = getopt(argc, argv, "hs:l:")) != -1) {    // Only one arg: t- 
                 switch(option) {
 			case 'h':
 				help();
 				exit(0);			
-                  	case 't':                    
+                  	case 's':                    
 		    		for (int i = 1; i < argc; i++) {   //  cycles through args to find -t seconds 
-       			 		if (strcmp(argv[i], "-t") == 0 && i + 1 < argc) {
+       			 		if (strcmp(argv[i], "-s") == 0 && i + 1 < argc) {
             		 			timeoutSeconds = atoi(argv[i + 1]);  // casts str to int
             	    	 			break;
         	         		}
@@ -60,9 +63,45 @@ int main(int argc, char** argv){
 	signal(SIGALRM, timeout);
 	alarm(timeoutSeconds);
 
-	forkandwait(numChildren); // Most time is spent here creating and waiting for children
+	struct LogicalClock* clock = initClockShm();	
+	struct PCB* processTable = initProcessTableShm();
 
-	logfile(logfilename[20]);
+	key_t messageKey = ftok(".", 'm');
+	int messageQueue = msgget(messageKey, IPC_CREAT | 0666);
+
+
+
+	while(1) {
+		unsigned int nsIncrement = rand() % MAX_TIME_BETWEEN_PROCS_NS;
+		incrementClock(clock, 0, nsIncrement);
+	
+		if(clock->seconds >= MAX_TIME_BETWEEN_PROCS_SECS){
+			int slot = -1;
+			for (int i = 0; i < MAX_PROCESSES; i++){
+				if (processTable[i].pid == -1){
+					slot = i;
+					break;
+				}
+			}
+
+			if (slot != -1){
+			
+				pid_t childPid = fork();
+				if (childPid == 0){
+				
+			}
+			
+			}	
+
+
+
+		}	
+	
+	
+	
+	}
+
+	//logfile(logfilename[20]);
 	return 0;	
 }
             
