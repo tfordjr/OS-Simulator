@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include <time.h>
 #include <string.h>
+#include <signal.h>
 #include <sys/mman.h>
-#include <semaphore.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/ipc.h>
@@ -14,99 +14,182 @@
 
 #include "clock_shm.h"
 #include "process_table_shm.h"
+#include "message.h"
 
-#define SEM_NAME "/file_semaphore"
+volatile sig_atomic_t term = 0;   // Kill signal
+void sigHandler(int sig);
 
+int main(int argc, char* argv[]){	
+	sigset_t mask;          // Signal Handling
+	sigdelset(&mask, SIGTERM);
+	sigdelset(&mask, SIGUSR1);
+	sigdelset(&mask, SIGUSR2);
+	sigprocmask(SIG_SETMASK, &mask, NULL);
+	signal(SIGUSR1, handle_signal);
+	signal(SIGUSR2, handle_signal);
 
-void logfile();
+	Clock* clock;           // init shm clock
+	key_t key = ftok("/tmp", 35);
+	int shmtid = shmget(key, sizeof(Clock), 0666);
+	clock = shmat(shmtid, NULL, 0);
 
-int main(){	
-	char t[9]; //Time string buffer
-	strftime(t, sizeof(t), "%T", localtime(&(time_t){time(NULL)})); //update t with current time
-
-	char* outfile = "cstest";
-	FILE* outputfile = fopen(outfile, "a");
-	if (!outputfile) {   // perror file open failure
-                perror("slave: Error: File open operation failed!");
-                exit(0);
-        }
-
-	srand(getpid());  //delay determined by pid instead of system time ensuring different delays among children
-	int randomDelay = rand() % 3 + 1;
-
-	sem_t* file_semaphore = sem_open(SEM_NAME, O_CREAT, 0666, 1);
-	if (file_semaphore == SEM_FAILED){
-		perror("slave: Error: sem_open failed\n");
-		exit(0);
-	}
-
-
-
-
-	
-
-
-
-
-
-	for (int i = 0; i < 5; i++) {  //for loop ensures no more than 5 accesses to crit section
-
-		if (sem_wait(file_semaphore) == -1) {
-			perror("slave: Error: sem_wait failed\n");
-			exit(0);
-		}	
+	int maxProc = 18;      // init shm process control table
+	PCB* pct;
+	key = ftok("/tmp", 50);
+	int shmpid = shmget(key, maxProc * sizeof(PCB), 0666);
+	pct = shmat(shmpid, NULL, 0);
+  
+	struct msg_struc message;    // create msg queue for signalling
+	key = ftok("/tmp", 65);          // between oss and children
+	int msgid = msgget(key, 0666);
 		
-		sleep(randomDelay);
-		strftime(t, sizeof(t), "%T", localtime(&(time_t){time(NULL)})); //update t with current time
-		fprintf(outputfile, "%s File modified by process number %d\n", t, getpid()); //access crit section
-		fflush(outputfile);
-		sleep(randomDelay);
+	srand(getpid());      // srand random seeds
+	int ran;
+	int r = 0;
+	int s = 0;
+	int p = 0;
 
-		if (sem_post(file_semaphore) == -1){
-			perror("slave: Error: sem_post failed");
-			exit(0);
-		}
+	int round = 0;
+	int index = atoi(argv[1]);
+	int done = 0;
+	int start;
+	int end;
 
-		logfile(); // log crit resource access to personal process logfile
+	//Critical section loop
+	while ( done == 0 && term == 0 ) {
+
+      	//Receive message from master
+		msgrcv(msgid, &message, sizeof(message), pct[index].pid, 0);
+
+		//Increment round
+		round++;
+		if (round == 1)
+			start = timer->secs*1000000000 + timer->nanos;    //Set the start time at round 1
+
+		//Small change of termination
+		ran = rand()%499 + 1;
+		if ( ran < 5 ) {
+			//Determine burst time
+			pct[index].burst_time = rand()%(pct[index].burst_time - 2) + 1;
+			if ( (pct[index].burst_time + pct[index].cpu_time) >= pct[index].duration) {
+			pct[index].burst_time = pct[index].duration - pct[index].cpu_time;
+			}
+
+			//Update process control block
+			pct[index].cpu_time += pct[index].burst_time;
+			pct[index].done = 1;
+
+			//Update timer
+			timer->nanos += pct[index].burst_time;
+			while (timer->nanos > 1000000000) {
+			timer->nanos -= 1000000000;
+			timer->secs++;
+			}
+
+			//Get run time
+			end = timer->secs*1000000000 + timer->nanos;
+			int childNans = end - start;
+			int childSecs = 0;
+			while (childNans >= 1000000000) {
+			childNans -= childNans;
+			childSecs++;
+			}
+			pct[index].total_sec = childSecs;
+			pct[index].total_nano = childNans;
+					
+			message.type = getppid();
+			msgsnd(msgid, &message, sizeof(message), 0);
+			
+			shmdt(timer);   //Detach shm
+			shmdt(pct);
+			return -1;
+      	}
+
+		//Determine if process get blocked
+		ran = rand()%99 + 1;
+		//Not blocked
+		if ( ran >= 20 ) {
+			//Check if done
+			if ( (pct[index].burst_time + pct[index].cpu_time) >= pct[index].duration) {
+				pct[index].burst_time = pct[index].duration - pct[index].cpu_time;
+				pct[index].done = 1;
+				done = 1;
+			}
+ 
+			//Update timer
+			timer->nanos += pct[index].burst_time;
+			while (timer->nanos > 1000000000) {
+				timer->nanos -= 1000000000;
+				timer->secs++;
+			}
+
+			//Update process control block
+			pct[index].cpu_time += pct[index].burst_time;
+
+			//Send to parent
+			message.type = getppid();
+			msgsnd(msgid, &message, sizeof(message), 0);
+      	} else {        // else if blocked
+			pct[index].ready = 0;
+			
+			r = rand()%5;    // find out blocked time
+			s = rand()%1000;
+			
+			pct[index].burst_time = rand()%(pct[index].burst_time - 2) + 1;
+			
+			if ( (pct[index].burst_time + pct[index].cpu_time) >= pct[index].duration) {
+				pct[index].burst_time = pct[index].duration - pct[index].cpu_time;
+				pct[index].done = 1;
+				done = 1;
+			}
+
+			timer->nanos += pct[index].burst_time;    // update clock
+			while (timer->nanos > 1000000000) {
+				timer->nanos -= 1000000000;
+				timer->secs++;
+			}
+
+			pct[index].cpu_time += pct[index].burst_time;   // update process table
+			pct[index].s = r + timer->secs;
+			pct[index].s = s + timer->nanos;
+			while (pct[index].s >= 1000000000) {
+				pct[index].s -= 1000000000;
+				pct[index].r++;
+			}
+			
+			message.type = getppid();     // Send msg   
+			msgsnd(msgid, &message, sizeof(message), 0);
+      	}
+   	}
+   
+	end = timer->secs*1000000000 + timer->nanos;    // update clock with runtime
+	int childNans = end - start;
+	int childSecs = 0;
+
+	while (childNans >= 1000000000) {
+		childNans -= childNans;
+		childSecs++;
 	}
 
-	fclose(outputfile);	
-	sem_close(file_semaphore);  //deallocating semaphore
-	sem_unlink(SEM_NAME);
-
-
-	key_t messageKey = ftok(".", 'm');
-	int messageQueue = msgget(messageKey, IPC_CREAT | 0666);
-	unsigned int nsIncrement = rand() % MAX_TIME_BETWEEN_PROCS_NS;
-
-	struct {
-		long mtype;
-		pid_t childPid;
-		unsigned int burstTime;
-	} message;
-	message.mtype = 1;
-	message.childPid = getpid();
-	message.burstTime = nsIncrement;
-	msgsnd(messageQueue, &message, sizeof(message), 0);
-
-
-	return 0;
+	pct[index].total_sec = childSecs;
+	pct[index].total_nano = childNans;
+		
+	shmdt(timer);
+	shmdt(pct);
+  
+    return 0;
 }
 
-void logfile(){
-	char outfile[16];
-	snprintf(outfile, sizeof(outfile), "logfile.%d", getpid()); // appending logfile name with pid
-
-	FILE* outputfile = fopen(outfile, "a");
-	if(!outputfile) {
-		perror("slave: Error: File open failed!");
-		exit(0);
+void sigHandler(int sig){
+	printf("slave: Child Pid %d signaled: %d: ...\n", getpid(), sig);
+	switch(sig){
+		case SIGINT:
+			kill(0, SIGUSR1);
+			term = 1;
+			break;
+		case SIGALRM:
+			kill(0, SIGUSR2);
+			term = 2;
+			break;
 	}
-
-	char t[9];
-	strftime(t, sizeof(t), "%T", localtime(&(time_t){time(NULL)}));  // updating t with current time
-	
-	fprintf(outputfile, "%s File modified by process number %d\n", t, getpid());  // writing to logfile
-	fflush(outputfile);	
-	fclose(outputfile);
 }

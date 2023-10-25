@@ -3,7 +3,7 @@
 
 typedef struct
 {
-   pid_t pid;
+   int pid;
    int priority;
    int cpu_time;
    int total_sec;

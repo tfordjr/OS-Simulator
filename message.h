@@ -2,7 +2,7 @@
 #define MESSAGE_H
 
 struct msg_struc {
-    long type;
+    int type;
     char str[200];
 };
 
