@@ -222,7 +222,7 @@ int main(int argc, char* argv[]) {
                //Write to log
                snprintf(message.str, sizeof(message), "OSS: Generating process with PID %d and putting it in queue %d at time %d.%d\n",
                             pct[index].pid, pct[index].priority, clock->secs, clock->nanos);
-               fprintf(log, message.str);
+               fprintf(log, "%s", message.str);
 
                //Confirm the child process execution
                message.type = 1;
@@ -255,7 +255,7 @@ int main(int argc, char* argv[]) {
          //Write to log
          snprintf(message.str, sizeof(message), "OSS: Dispaching process with PID %d from queue %d at time %d.%d\n",
          			pct[i].pid, pct[i].priority, clock->secs, clock->nanos);
-         fprintf(log, message.str);
+         fprintf(log, "%s", message.str);
          
          message.type = roundRobin[0];
          msgsnd(msgid, &message, sizeof(message), 0);         
@@ -267,17 +267,17 @@ int main(int argc, char* argv[]) {
             waitpid(pct[i].pid, &status, 0);
             snprintf(message.str, sizeof(message), "OSS: Process with PID %d has finished at time %d.%d after running %d nanoseconds\n",
                                                                     pct[i].pid, clock->secs, clock->nanos, pct[i].cpu_time);
-            fprintf(log, message.str);
+            fprintf(log, "%s", message.str);
             roundRobin[0] = 0;
             pct[i].ready = -1;
          } else if ( pct[i].ready = 0 ) {   // ELSE IF QUEUE BLOCKED
             snprintf(message.str, sizeof(message.str), "OSS: Process with PID %d blocked at time, ran for %d nanoseconds\n",
                  	  pct[i].pid, clock->secs, clock->nanos, pct[index].burst_time);
-            fprintf(log, message.str);
+            fprintf(log, "%s", message.str);
          } else {                        // ELSE STILL RUNNING
             snprintf(message.str, sizeof(message), "OSS: Recieving that process with PID %d ran for %d nanoseconds\n",
                       pct[i].pid, pct[i].burst_time );
-            fprintf(log, message.str);
+            fprintf(log, "%s", message.str);
          }
 
          //Update the priority queues
@@ -311,7 +311,7 @@ int main(int argc, char* argv[]) {
              // log 
          snprintf(message.str, sizeof(message), "OSS: Dispaching process with PID %d from queue %d at time %d.%d\n",
                     pct[i].pid, pct[i].priority, clock->secs, clock->nanos);
-         fprintf(log, message.str);
+         fprintf(log, "%s", message.str);
          
          message.type = feedbck_1[0];   // Allow child to run
          msgsnd(msgid, &message, sizeof(message), 0);
@@ -323,23 +323,23 @@ int main(int argc, char* argv[]) {
             waitpid(pct[i].pid, &status, 0);
             snprintf(message.str, sizeof(message), "OSS: Process with PID %d has finished at time %d.%d after running %d nanoseconds\n",
                         pct[i].pid, clock->secs, clock->nanos, pct[i].cpu_time);
-            fprintf(log, message.str);
+            fprintf(log, "%s", message.str);
             feedbck_1[0] = 0;
             pct[i].ready = -1;
          } else if ( pct[i].ready = 0 ) {      // ELSE IF BLOCKED
             pct[i].priority++;
             snprintf(message.str, sizeof(message.str), "OSS: Process with PID %d blocked at time, ran for %d nanoseconds\n",
                         pct[i].pid, clock->secs, clock->nanos, pct[index].burst_time);
-            fprintf(log, message.str);
+            fprintf(log, "%s", message.str);
          } else {                             // ELSE STILL RUNNING
             pct[i].priority++;
             snprintf(message.str, sizeof(message), "OSS: Recieving that process with PID %d ran for %d nanoseconds\n",
                         pct[i].pid, pct[i].burst_time );
-            fprintf(log, message.str);
+            fprintf(log, "%s", message.str);
 
             snprintf(message.str, sizeof(message), "OSS: Putting process with PID %d into queue %d\n",
                         pct[index].pid, pct[index].priority);
-            fprintf(log, message.str);
+            fprintf(log, "%s", message.str);
          }
 
          //Update the priority queues
@@ -372,7 +372,7 @@ int main(int argc, char* argv[]) {
          pct[i].burst_time = quantum[2];   //Set the time burst
          snprintf(message.str, sizeof(message), "OSS: Dispaching process with PID %d from queue %d at time %d.%d\n",
                     pct[i].pid, pct[i].priority, clock->secs, clock->nanos);
-         fprintf(log, message.str);
+         fprintf(log, "%s", message.str);
          
          message.type = feedbck_2[0];
          msgsnd(msgid, &message, sizeof(message), 0);        
@@ -384,23 +384,23 @@ int main(int argc, char* argv[]) {
             waitpid(pct[i].pid, &status, 0);
             snprintf(message.str, sizeof(message), "OSS: Process with PID %d has finished at time %d.%d after running %d nanoseconds\n",
                         pct[i].pid, clock->secs, clock->nanos, pct[i].cpu_time);
-            fprintf(log, message.str);
+            fprintf(log, "%s", message.str);
             feedbck_2[0] = 0;
             pct[i].ready = -1;
          } else if ( pct[i].ready = 0 ) {     // ELSE IF BLOCKED
             pct[i].priority++;
             snprintf(message.str, sizeof(message.str), "OSS: Process with PID %d blocked at time, ran for %d nanoseconds\n",
                         pct[i].pid, clock->secs, clock->nanos, pct[index].burst_time);
-            fprintf(log, message.str);
+            fprintf(log, "%s", message.str);
          } else {                             // ELSE STILL RUNNING
             pct[i].priority++;
             snprintf(message.str, sizeof(message), "OSS: Recieving that process with PID %d ran for %d nanoseconds\n",
                         pct[i].pid, pct[i].burst_time );
-            fprintf(log, message.str);
+            fprintf(log, "%s", message.str);
 
             snprintf(message.str, sizeof(message), "OSS: Putting process with PID %d into queue %d\n",
                         pct[index].pid, pct[index].priority);
-            fprintf(log, message.str);
+            fprintf(log, "%s", message.str);
          }
 
          //Update the priority queues
@@ -434,7 +434,7 @@ int main(int argc, char* argv[]) {
          //Write to log
          snprintf(message.str, sizeof(message), "OSS: Dispaching process with PID %d from queue %d at time %d.%d\n",
                     pct[i].pid, pct[i].priority, clock->secs, clock->nanos);
-         fprintf(log, message.str);
+         fprintf(log, "%s", message.str);
          
          message.type = feedbck_3[0];       //Let the child process run
          msgsnd(msgid, &message, sizeof(message), 0);         
@@ -446,17 +446,17 @@ int main(int argc, char* argv[]) {
             printf("%s: Process %d finished. %d child processes running.\n", argv[0], pct[i].pid, count);
             snprintf(message.str, sizeof(message), "OSS: Process with PID %d has finished at time %d.%d after running %d nanoseconds\n",
                         pct[i].pid, clock->secs, clock->nanos, pct[i].cpu_time);
-            fprintf(log, message.str);
+            fprintf(log, "%s", message.str);
             feedbck_3[0] = 0;
             pct[i].ready = -1;
          } else if ( pct[i].ready = 0 ) {     // ELSE IF BLOCKED
             snprintf(message.str, sizeof(message.str), "OSS: Process with PID %d blocked at time, ran for %d nanoseconds\n",
                         pct[i].pid, clock->secs, clock->nanos, pct[index].burst_time);
-            fprintf(log, message.str);
+            fprintf(log, "%s", message.str);
          } else {                            // ELSE STILL RUNNING
             snprintf(message.str, sizeof(message), "OSS: Recieving that process with PID %d ran for %d nanoseconds\n",
                         pct[i].pid, pct[i].burst_time );
-            fprintf(log, message.str);
+            fprintf(log, "%s", message.str);
          }
 
 
