@@ -25,8 +25,8 @@ int main(int argc, char* argv[]){
 	sigdelset(&mask, SIGUSR1);
 	sigdelset(&mask, SIGUSR2);
 	sigprocmask(SIG_SETMASK, &mask, NULL);
-	signal(SIGUSR1, handle_signal);
-	signal(SIGUSR2, handle_signal);
+	signal(SIGUSR1, sigHandler);
+	signal(SIGUSR2, sigHandler);
 
 	Clock* clock;           // init shm clock
 	key_t key = ftok("/tmp", 35);
@@ -47,7 +47,7 @@ int main(int argc, char* argv[]){
 	int ran;
 	int r = 0;
 	int s = 0;
-	int p = 0;
+	//int p = 0;
 
 	int round = 0;
 	int index = atoi(argv[1]);
