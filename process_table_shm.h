@@ -3,15 +3,18 @@
 
 typedef struct
 {
-   int pid;
+   long pid;
    int priority;
    int cpu_time;
    int total_sec;
    int total_nano;
    int burst_time;
    int running;
-   int ready;   
-   int done;   
+   int ready;
+   int duration;
+   int done;
+   int r;
+   int s;
 } PCB;
 
 #endif
