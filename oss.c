@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
    sigdelset(&mask, SIGALRM);
    sigdelset(&mask, SIGTERM);
    sigprocmask(SIG_SETMASK, &mask, NULL);
-   signal(SIGINT, sigHandler);
+   //signal(SIGINT, sigHandler);
    signal(SIGALRM, sigHandler);
    
    Clock* clock;     // init shm clock
