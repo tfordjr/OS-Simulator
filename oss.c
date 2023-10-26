@@ -35,7 +35,7 @@ int k;
 
 // function headers
 void help();    
-void handle_signal(int sig);
+void sigHandler(int sig);
 
 int main(int argc, char* argv[]) {   	
 
@@ -45,8 +45,8 @@ int main(int argc, char* argv[]) {
    sigdelset(&mask, SIGALRM);
    sigdelset(&mask, SIGTERM);
    sigprocmask(SIG_SETMASK, &mask, NULL);
-   signal(SIGINT, handle_signal);
-   signal(SIGALRM, handle_signal);
+   signal(SIGINT, sigHandler);
+   signal(SIGALRM, sigHandler);
    
    Clock* clock;     // init shm clock
    key_t key = ftok("/tmp", 35);
@@ -520,7 +520,7 @@ void help(){
 
 }
 
-void handle_signal(int sig) {
+void sigHandler(int sig) {
    printf("./oss: Parent process %d caught signal: %d. Cleaning up and terminating.\n", getpid(), sig);
    switch(sig) {
       case SIGINT:
