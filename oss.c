@@ -254,7 +254,7 @@ int main(int argc, char* argv[]) {
 
          //Write to log
          snprintf(message.str, sizeof(message), "OSS: Dispaching process with PID %d from queue %d at time %d.%d\n",
-         			pct[i].pid, pct[i].priority, clock->secs, timer->nanos);
+         			pct[i].pid, pct[i].priority, clock->secs, clock->nanos);
          fprintf(log, message.str);
          
          message.type = roundRobin[0];
