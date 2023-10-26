@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
    char* filename = "default.log";
    int termTime = 3;
    
-   while ((c = getopt(argc, argv, "hl:t:")) != -1) {   // Command line args
+   while ((c = getopt(argc, argv, "hl:s:")) != -1) {   // Command line args
       switch(c) {         
          case 'h':  // help
             help();
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
 			printf("%s: filename set to: %s\n", argv[0], filename);       
             break;
         
-         case 't':  // set time             
+         case 's':  // set time             
 			termTime = atoi(optarg);
 			printf("%s: termination time set to: %d\n", argv[0], termTime);                          
             break;

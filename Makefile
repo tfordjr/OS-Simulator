@@ -10,4 +10,4 @@ SRCS = oss.c slave.c
 all:  oss slave
 
 clean:
-	rm -f oss slave cstest logfile.*
+	rm -f oss slave *.log
