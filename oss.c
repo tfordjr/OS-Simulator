@@ -272,7 +272,7 @@ int main(int argc, char* argv[]) {
             pct[i].ready = -1;
          } else if ( pct[i].ready == 0 ) {   // ELSE IF QUEUE BLOCKED
             snprintf(message.str, sizeof(message.str), "OSS: Process with PID %d blocked at time, ran for %d nanoseconds\n",
-                 	  pct[i].pid, clock->secs, clock->nanos, pct[index].burst_time);
+                 	  pct[i].pid, clock->nanos);
             fprintf(log, "%s", message.str);
          } else {                        // ELSE STILL RUNNING
             snprintf(message.str, sizeof(message), "OSS: Recieving that process with PID %d ran for %d nanoseconds\n",
@@ -329,7 +329,7 @@ int main(int argc, char* argv[]) {
          } else if ( pct[i].ready == 0 ) {      // ELSE IF BLOCKED
             pct[i].priority++;
             snprintf(message.str, sizeof(message.str), "OSS: Process with PID %d blocked at time, ran for %d nanoseconds\n",
-                        pct[i].pid, clock->secs, clock->nanos, pct[index].burst_time);
+                        pct[i].pid, clock->nanos);
             fprintf(log, "%s", message.str);
          } else {                             // ELSE STILL RUNNING
             pct[i].priority++;
@@ -390,7 +390,7 @@ int main(int argc, char* argv[]) {
          } else if ( pct[i].ready == 0 ) {     // ELSE IF BLOCKED
             pct[i].priority++;
             snprintf(message.str, sizeof(message.str), "OSS: Process with PID %d blocked at time, ran for %d nanoseconds\n",
-                        pct[i].pid, clock->secs, clock->nanos, pct[index].burst_time);
+                        pct[i].pid, clock->nanos);
             fprintf(log, "%s", message.str);
          } else {                             // ELSE STILL RUNNING
             pct[i].priority++;
@@ -451,7 +451,7 @@ int main(int argc, char* argv[]) {
             pct[i].ready = -1;
          } else if ( pct[i].ready == 0 ) {     // ELSE IF BLOCKED
             snprintf(message.str, sizeof(message.str), "OSS: Process with PID %d blocked at time, ran for %d nanoseconds\n",
-                        pct[i].pid, clock->secs, clock->nanos, pct[index].burst_time);
+                        pct[i].pid, clock->nanos);
             fprintf(log, "%s", message.str);
          } else {                            // ELSE STILL RUNNING
             snprintf(message.str, sizeof(message), "OSS: Recieving that process with PID %d ran for %d nanoseconds\n",
