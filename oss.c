@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
       switch(c) {         
          case 'h':  // help
             help();
-            break;
+            exit(0);
 
          case 'l':  // set filename            
 			filename = optarg;
