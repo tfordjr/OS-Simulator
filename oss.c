@@ -270,7 +270,7 @@ int main(int argc, char* argv[]) {
             fprintf(log, "%s", message.str);
             roundRobin[0] = 0;
             pct[i].ready = -1;
-         } else if ( pct[i].ready = 0 ) {   // ELSE IF QUEUE BLOCKED
+         } else if ( pct[i].ready == 0 ) {   // ELSE IF QUEUE BLOCKED
             snprintf(message.str, sizeof(message.str), "OSS: Process with PID %d blocked at time, ran for %d nanoseconds\n",
                  	  pct[i].pid, clock->secs, clock->nanos, pct[index].burst_time);
             fprintf(log, "%s", message.str);
@@ -326,7 +326,7 @@ int main(int argc, char* argv[]) {
             fprintf(log, "%s", message.str);
             feedbck_1[0] = 0;
             pct[i].ready = -1;
-         } else if ( pct[i].ready = 0 ) {      // ELSE IF BLOCKED
+         } else if ( pct[i].ready == 0 ) {      // ELSE IF BLOCKED
             pct[i].priority++;
             snprintf(message.str, sizeof(message.str), "OSS: Process with PID %d blocked at time, ran for %d nanoseconds\n",
                         pct[i].pid, clock->secs, clock->nanos, pct[index].burst_time);
@@ -387,7 +387,7 @@ int main(int argc, char* argv[]) {
             fprintf(log, "%s", message.str);
             feedbck_2[0] = 0;
             pct[i].ready = -1;
-         } else if ( pct[i].ready = 0 ) {     // ELSE IF BLOCKED
+         } else if ( pct[i].ready == 0 ) {     // ELSE IF BLOCKED
             pct[i].priority++;
             snprintf(message.str, sizeof(message.str), "OSS: Process with PID %d blocked at time, ran for %d nanoseconds\n",
                         pct[i].pid, clock->secs, clock->nanos, pct[index].burst_time);
@@ -449,7 +449,7 @@ int main(int argc, char* argv[]) {
             fprintf(log, "%s", message.str);
             feedbck_3[0] = 0;
             pct[i].ready = -1;
-         } else if ( pct[i].ready = 0 ) {     // ELSE IF BLOCKED
+         } else if ( pct[i].ready == 0 ) {     // ELSE IF BLOCKED
             snprintf(message.str, sizeof(message.str), "OSS: Process with PID %d blocked at time, ran for %d nanoseconds\n",
                         pct[i].pid, clock->secs, clock->nanos, pct[index].burst_time);
             fprintf(log, "%s", message.str);
